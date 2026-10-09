@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function isValidQuizResult(data) {
+      return data.keys().hasAll([
+        'userId', 'classRoom', 'studentNumber', 'studentName',
+        'score', 'correctCount', 'totalQuestions', 'answers', 'submittedAt'
+      ]) &&
+      data.userId is string && data.userId == request.auth.uid &&
+      data.classRoom is string && data.classRoom.size() > 0 && data.classRoom.size() <= 20 &&
+      data.studentNumber is number && data.studentNumber >= 1 && data.studentNumber <= 100 &&
+      data.studentName is string && data.studentName.size() > 0 && data.studentName.size() <= 50 &&
+      data.score is number && data.score >= 0 && data.score <= 100 &&
+      data.correctCount is number && data.correctCount >= 0 && data.correctCount <= 20 &&
+      data.totalQuestions is number && data.totalQuestions == 20 &&
+      data.answers is list && data.answers.size() == 20 &&
+      data.submittedAt is string && data.submittedAt.size() <= 50;
+    }
+
+    // Connection check endpoint
+    match /test/connection {
+      allow read: if isSignedIn();
+    }
+
+    // Quiz submission results
+    match /quiz_results/{resultId} {
+      allow create: if isSignedIn() && isValidId(resultId) && isValidQuizResult(incoming());
+      allow read: if isSignedIn();
+      allow update, delete: if false;
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "반짝반짝 일상 영단어 퀴즈",
+  "description": "초등학생을 위한 일상생활 필수 영단어 20문항 퀴즈 & 실시간 오답 노트 및 교사 대시보드",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
